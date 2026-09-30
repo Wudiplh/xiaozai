@@ -129,36 +129,21 @@
 
 <script>
 // ====== 配置区（和 index.html 保持一致）======
-var GITHUB_USER = 'wudiplh';
-var GITHUB_REPO = 'xiaozai';
-var GITHUB_TOKEN = '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';
-var GITHUB_BRANCH = 'main';
+var API_URL = 'https://jsonblob.com/api/jsonBlob/01a0f33c-396e-7b31-b829-59f1747a74f8';
 // ============================================
 
 function loadOrders(callback) {
-  if (GITHUB_TOKEN) {
-    var apiUrl = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json?ref=' + GITHUB_BRANCH;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', apiUrl, true);
-    xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-    xhr.onload = function() {
-      if (xhr.status === 200) {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          var orders = JSON.parse(atob(resp.content));
-          callback(orders);
-        } catch(e) { callback([]); }
-      } else {
-        callback([]);
-      }
-    };
-    xhr.onerror = function() { callback([]); };
-    xhr.send();
-  } else {
-    var orders = [];
-    try { orders = JSON.parse(localStorage.getItem('diancai_orders') || '[]'); } catch(e) {}
-    callback(orders);
-  }
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', API_URL, true);
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      try { callback(JSON.parse(xhr.responseText)); } catch(e) { callback([]); }
+    } else {
+      callback([]);
+    }
+  };
+  xhr.onerror = function() { callback([]); };
+  xhr.send();
 }
 
 function renderOrders(orders) {
@@ -204,40 +189,24 @@ document.getElementById('refreshBtn').onclick = refresh;
 
 document.getElementById('clearBtn').onclick = function() {
   if (confirm('确定要清空所有订单吗？此操作不可恢复！')) {
-    if (GITHUB_TOKEN) {
-      var apiUrl = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json?ref=' + GITHUB_BRANCH;
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', apiUrl, true);
-      xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          var resp = JSON.parse(xhr.responseText);
-          var xhr2 = new XMLHttpRequest();
-          xhr2.open('DELETE', 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json', true);
-          xhr2.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-          xhr2.setRequestHeader('Content-Type', 'application/json');
-          xhr2.onload = function() {
-            if (xhr2.status === 200) {
-              alert('已清空');
-              refresh();
-            } else {
-              alert('清空失败');
-            }
-          };
-          xhr2.send(JSON.stringify({ message: 'clear orders', sha: resp.sha, branch: GITHUB_BRANCH }));
-        }
-      };
-      xhr.send();
-    } else {
-      localStorage.removeItem('diancai_orders');
-      alert('已清空');
-      refresh();
-    }
+    var xhr = new XMLHttpRequest();
+    xhr.open('PUT', API_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+      if (xhr.status === 200 || xhr.status === 201) {
+        alert('已清空');
+        refresh();
+      } else {
+        alert('清空失败');
+      }
+    };
+    xhr.onerror = function() { alert('网络错误'); };
+    xhr.send('[]');
   }
 };
 
 // 模式提示
-document.getElementById('modeTag').innerHTML = GITHUB_TOKEN ? 'GitHub 云同步模式' : '本地模式（仅本机可见）';
+document.getElementById('modeTag').innerHTML = '云端同步模式';
 
 refresh();
 </script>

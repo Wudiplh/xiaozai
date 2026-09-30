@@ -334,10 +334,7 @@
 
 <script>
 // ====== 配置区 ======
-var GITHUB_USER = 'wudiplh';
-var GITHUB_REPO = 'xiaozai';
-var GITHUB_TOKEN = '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';
-var GITHUB_BRANCH = 'main';
+var API_URL = 'https://jsonblob.com/api/jsonBlob/01a0f33c-396e-7b31-b829-59f1747a74f8';
 // ====================
 
 var dishes = [
@@ -527,58 +524,41 @@ function submitOrder(name, note, entries) {
     time: new Date().toLocaleString('zh-CN')
   };
 
-  if (GITHUB_TOKEN) {
-    // GitHub API 模式
-    var apiUrl = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json';
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', apiUrl + '?ref=' + GITHUB_BRANCH, true);
-    xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-    xhr.onload = function() {
-      var orders = [];
-      var sha = '';
-      if (xhr.status === 200) {
-        var resp = JSON.parse(xhr.responseText);
-        sha = resp.sha;
-        try { orders = JSON.parse(atob(resp.content)); } catch(e) { orders = []; }
-      }
-      orders.push(order);
-      var content = btoa(unescape(encodeURIComponent(JSON.stringify(orders, null, 2))));
-      var xhr2 = new XMLHttpRequest();
-      xhr2.open('PUT', apiUrl, true);
-      xhr2.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-      xhr2.setRequestHeader('Content-Type', 'application/json');
-      xhr2.onload = function() {
-        if (xhr2.status === 200 || xhr2.status === 201) {
-          showSuccess();
-        } else {
-          alert('提交失败，请重试');
-          btn.innerHTML = '确认下单';
-          btn.className = 'btn-confirm';
-        }
-      };
-      xhr2.onerror = function() {
-        alert('网络错误，请重试');
+  // 先读取现有订单
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', API_URL, true);
+  xhr.onload = function() {
+    var orders = [];
+    if (xhr.status === 200) {
+      try { orders = JSON.parse(xhr.responseText); } catch(e) { orders = []; }
+    }
+    orders.push(order);
+    // 写入更新后的订单
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('PUT', API_URL, true);
+    xhr2.setRequestHeader('Content-Type', 'application/json');
+    xhr2.onload = function() {
+      if (xhr2.status === 200 || xhr2.status === 201) {
+        showSuccess();
+      } else {
+        alert('提交失败，请重试');
         btn.innerHTML = '确认下单';
         btn.className = 'btn-confirm';
-      };
-      var body = JSON.stringify({ message: 'new order', content: content, branch: GITHUB_BRANCH });
-      if (sha) body = JSON.stringify({ message: 'new order', content: content, sha: sha, branch: GITHUB_BRANCH });
-      xhr2.send(body);
+      }
     };
-    xhr.onerror = function() {
+    xhr2.onerror = function() {
       alert('网络错误，请重试');
       btn.innerHTML = '确认下单';
       btn.className = 'btn-confirm';
     };
-    xhr.send();
-  } else {
-    // localStorage 本地模式
-    var orders = [];
-    try { orders = JSON.parse(localStorage.getItem('diancai_orders') || '[]'); } catch(e) {}
-    orders.push(order);
-    localStorage.setItem('diancai_orders', JSON.stringify(orders));
-    showSuccess();
-  }
+    xhr2.send(JSON.stringify(orders));
+  };
+  xhr.onerror = function() {
+    alert('网络错误，请重试');
+    btn.innerHTML = '确认下单';
+    btn.className = 'btn-confirm';
+  };
+  xhr.send();
 }
 
 function showSuccess() {
