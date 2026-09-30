@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>今日菜单</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #fff5f5;
+    color: #333;
+    min-height: 100vh;
+    padding-bottom: 90px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%);
+    padding: 24px 20px 20px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.1); }
+  .header .subtitle { font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; }
+  .header .mascot { font-size: 40px; margin-bottom: 8px; }
+
+  .random-btn {
+    display: block;
+    margin: 14px auto 0;
+    background: #fff;
+    border: 2px dashed #ff9a9e;
+    border-radius: 25px;
+    padding: 10px 24px;
+    font-size: 14px;
+    color: #ff6b81;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    padding: 12px 16px;
+    gap: 8px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    cursor: pointer;
+    outline: none;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    color: #fff;
+    font-weight: bold;
+  }
+
+  .menu-section { padding: 12px 16px; }
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff6b81;
+    margin-bottom: 12px;
+    padding-left: 8px;
+    border-left: 3px solid #ff9a9e;
+  }
+  .dish-card {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(255,154,158,0.1);
+  }
+  .dish-emoji { font-size: 36px; margin-right: 14px; flex-shrink: 0; }
+  .dish-info { flex: 1; min-width: 0; }
+  .dish-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 3px; }
+  .dish-desc { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dish-bottom { display: flex; align-items: center; margin-top: 6px; }
+  .dish-price { font-size: 16px; font-weight: bold; color: #ff6b81; }
+  .add-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 10px;
+    outline: none;
+    line-height: 1;
+  }
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+  .qty-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid #ff9a9e;
+    background: #fff;
+    color: #ff6b81;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    line-height: 1;
+  }
+  .qty-num { font-size: 16px; font-weight: bold; color: #ff6b81; min-width: 20px; text-align: center; }
+
+  .cart-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.08);
+    z-index: 100;
+  }
+  .cart-left { display: flex; align-items: center; gap: 10px; }
+  .cart-icon { font-size: 28px; position: relative; }
+  .cart-badge {
+    position: absolute;
+    top: -6px; right: -8px;
+    background: #ff6b81;
+    color: #fff;
+    font-size: 11px;
+    min-width: 18px; height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  .cart-total { font-size: 20px; font-weight: bold; color: #ff6b81; }
+  .order-btn {
+    background: linear-gradient(135deg, #ff9a9e, #ff6b81);
+    border: none;
+    border-radius: 25px;
+    padding: 10px 28px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* 弹窗 */
+  .overlay-mask {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
+  .overlay-mask.show { display: block; }
+
+  .popup-center {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .popup-center.show { display: flex; }
+
+  .popup-bottom {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1000;
+  }
+  .popup-bottom.show { display: block; }
+  .popup-bottom-mask {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+  }
+  .popup-bottom-content {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 30px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .random-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    width: 260px;
+    margin: 0 20px;
+  }
+  .random-card .r-emoji { font-size: 60px; margin-bottom: 12px; }
+  .random-card .r-name { font-size: 20px; font-weight: bold; color: #ff6b81; margin-bottom: 6px; }
+  .random-card .r-price { font-size: 16px; color: #999; margin-bottom: 16px; }
+  .random-card .r-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5; }
+  .random-card button {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .order-panel h2 { text-align: center; font-size: 18px; color: #ff6b81; margin-bottom: 16px; }
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 14px;
+  }
+  .order-item .oi-name { flex: 1; }
+  .order-item .oi-qty { color: #999; margin: 0 12px; }
+  .order-item .oi-price { color: #ff6b81; font-weight: bold; min-width: 60px; text-align: right; }
+  .order-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0 8px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .order-total-row .total-price { color: #ff6b81; font-size: 20px; }
+  .order-note {
+    width: 100%;
+    border: 1px dashed #ddd;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 12px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    height: 60px;
+  }
+  .order-actions { display: flex; gap: 12px; margin-top: 16px; }
+  .order-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 25px;
+    border: none;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+  }
+  .btn-cancel { background: #f5f5f5; color: #999; }
+  .btn-confirm { background: linear-gradient(135deg, #ff9a9e, #ff6b81); color: #fff; }
+
+  .success-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    width: 280px;
+    margin: 0 20px;
+  }
+  .success-card .big-emoji { font-size: 60px; margin-bottom: 12px; }
+  .success-card h3 { font-size: 18px; color: #ff6b81; margin-bottom: 8px; }
+  .success-card p { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 16px; }
+  .success-card button {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="mascot">&#x1F468;&#x200D;&#x1F373;</div>
+  <h1>&#x2728; 今日特供菜单 &#x2728;</h1>
+  <div class="subtitle">想吃什么随便点，老板（我）亲自下厨</div>
+  <button class="random-btn" id="randomBtn">&#x1F3B2; 帮我选一道！不知道吃啥</button>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-cat="all">&#x1F37D;&#xFE0F; 全部</button>
+  <button class="tab" data-cat="hot">&#x1F525; 热菜</button>
+  <button class="tab" data-cat="cold">&#x1F957; 凉菜</button>
+  <button class="tab" data-cat="soup">&#x1F372; 汤羹</button>
+  <button class="tab" data-cat="staple">&#x1F35A; 主食</button>
+  <button class="tab" data-cat="drink">&#x1F9CB; 饮品</button>
+  <button class="tab" data-cat="dessert">&#x1F370; 甜品</button>
+</div>
+
+<div class="menu-section" id="menuSection"></div>
+
+<div class="cart-bar">
+  <div class="cart-left">
+    <div class="cart-icon">
+      &#x1F6D2;
+      <span class="cart-badge" id="cartBadge">0</span>
+    </div>
+    <div class="cart-total" id="cartTotal">0</div>
+  </div>
+  <button class="order-btn" id="orderBtn">去下单 &rarr;</button>
+</div>
+
+<!-- 随机弹窗 -->
+<div class="popup-center" id="randomWrap">
+  <div class="random-card" id="randomCard"></div>
+</div>
+
+<!-- 订单弹窗 -->
+<div class="popup-bottom" id="orderWrap">
+  <div class="popup-bottom-mask" id="orderBg"></div>
+  <div class="popup-bottom-content order-panel" id="orderPanel"></div>
+</div>
+
+<!-- 成功弹窗 -->
+<div class="popup-center" id="successWrap">
+  <div class="success-card">
+    <div class="big-emoji">&#x1F389;</div>
+    <h3>下单成功！</h3>
+    <p>老板已收到你的菜单<br>正在疯狂备料中...<br>预计上菜时间：看你心情</p>
+    <button id="successBtn">好的，等投喂</button>
+  </div>
+</div>
+
+<script>
+var dishes = [
+  { id: 1, name: '老板牌红烧肉', emoji: '\uD83E\uDD69', cat: 'hot', price: 38, desc: '肥而不腻，入口即化，老板的拿手菜' },
+  { id: 2, name: '糖醋小排', emoji: '\uD83C\uDF56', cat: 'hot', price: 32, desc: '酸酸甜甜，啃到停不下来' },
+  { id: 3, name: '宫保鸡丁', emoji: '\uD83C\uDF57', cat: 'hot', price: 28, desc: '花生脆脆的，鸡肉嫩嫩的' },
+  { id: 4, name: '番茄炒蛋', emoji: '\uD83C\uDF73', cat: 'hot', price: 18, desc: '国民第一菜，永远的神' },
+  { id: 5, name: '麻婆豆腐', emoji: '\uD83C\uDF36\uFE0F', cat: 'hot', price: 22, desc: '麻辣鲜香，下饭神器' },
+  { id: 6, name: '清蒸鲈鱼', emoji: '\uD83D\uDC1F', cat: 'hot', price: 45, desc: '鲜嫩爽滑，营养满满' },
+  { id: 7, name: '干锅花菜', emoji: '\uD83E\uDD66', cat: 'hot', price: 24, desc: '焦香入味，素菜也能很下饭' },
+  { id: 8, name: '水煮牛肉', emoji: '\uD83E\uDD58', cat: 'hot', price: 42, desc: '麻辣过瘾，牛肉滑嫩' },
+  { id: 9, name: '凉拌黄瓜', emoji: '\uD83E\uDD52', cat: 'cold', price: 12, desc: '清爽解腻，夏日必备' },
+  { id: 10, name: '口水鸡', emoji: '\uD83D\uDC14', cat: 'cold', price: 26, desc: '红油香麻，看着就流口水' },
+  { id: 11, name: '皮蛋豆腐', emoji: '\uD83E\uDD5A', cat: 'cold', price: 16, desc: '经典搭配，简单又好吃' },
+  { id: 12, name: '蒜泥白肉', emoji: '\uD83E\uDD53', cat: 'cold', price: 28, desc: '蒜香浓郁，肉片薄如纸' },
+  { id: 13, name: '番茄蛋花汤', emoji: '\uD83C\uDF45', cat: 'soup', price: 15, desc: '酸甜开胃，暖胃首选' },
+  { id: 14, name: '紫菜蛋花汤', emoji: '\uD83C\uDF3F', cat: 'soup', price: 12, desc: '清淡鲜美，百喝不腻' },
+  { id: 15, name: '玉米排骨汤', emoji: '\uD83C\uDF3D', cat: 'soup', price: 35, desc: '炖了两个小时，鲜到掉眉毛' },
+  { id: 16, name: '酸辣汤', emoji: '\uD83C\uDF5C', cat: 'soup', price: 18, desc: '酸酸辣辣，喝完浑身舒坦' },
+  { id: 17, name: '蛋炒饭', emoji: '\uD83C\uDF5A', cat: 'staple', price: 15, desc: '粒粒分明，金黄诱人' },
+  { id: 18, name: '手工水饺', emoji: '\uD83E\uDD5F', cat: 'staple', price: 22, desc: '皮薄馅大，老板亲手包的' },
+  { id: 19, name: '葱油拌面', emoji: '\uD83C\uDF5C', cat: 'staple', price: 16, desc: '葱香四溢，简单却上头' },
+  { id: 20, name: '小笼包(6个)', emoji: '\uD83E\uDD5F', cat: 'staple', price: 20, desc: '皮薄汁多，一口一个' },
+  { id: 21, name: '珍珠奶茶', emoji: '\uD83E\uDDCB', cat: 'drink', price: 15, desc: 'Q弹珍珠，快乐源泉' },
+  { id: 22, name: '鲜榨橙汁', emoji: '\uD83C\uDF4A', cat: 'drink', price: 18, desc: '100%鲜榨，维C满满' },
+  { id: 23, name: '冰镇酸梅汤', emoji: '\uD83E\uDD64', cat: 'drink', price: 10, desc: '消暑解腻，古法熬制' },
+  { id: 24, name: '柠檬蜂蜜水', emoji: '\uD83C\uDF4B', cat: 'drink', price: 12, desc: '酸甜清爽，美容养颜' },
+  { id: 25, name: '芒果布丁', emoji: '\uD83C\uDF6E', cat: 'dessert', price: 16, desc: '嫩滑Q弹，芒果味超浓' },
+  { id: 26, name: '草莓蛋糕', emoji: '\uD83C\uDF70', cat: 'dessert', price: 22, desc: '奶油绵密，草莓新鲜' },
+  { id: 27, name: '冰淇淋球', emoji: '\uD83C\uDF66', cat: 'dessert', price: 12, desc: '三种口味任选，快乐加倍' },
+  { id: 28, name: '红豆双皮奶', emoji: '\uD83E\uDD5B', cat: 'dessert', price: 14, desc: '奶香浓郁，红豆软糯' }
+];
+
+var catNames = { hot: '\uD83D\uDD25 热菜', cold: '\uD83E\uDD57 凉菜', soup: '\uD83C\uDF72 汤羹', staple: '\uD83C\uDF5A 主食', drink: '\uD83E\uDDCB 饮品', dessert: '\uD83C\uDF70 甜品' };
+
+var cart = {};
+var currentCat = 'all';
+
+function findDish(id) {
+  for (var i = 0; i < dishes.length; i++) {
+    if (dishes[i].id === id) return dishes[i];
+  }
+  return null;
+}
+
+function renderMenu() {
+  var section = document.getElementById('menuSection');
+  var cats = currentCat === 'all' ? ['hot','cold','soup','staple','drink','dessert'] : [currentCat];
+  var html = '';
+  for (var c = 0; c < cats.length; c++) {
+    var cat = cats[c];
+    var items = [];
+    for (var i = 0; i < dishes.length; i++) {
+      if (dishes[i].cat === cat) items.push(dishes[i]);
+    }
+    if (items.length === 0) continue;
+    html += '<div class="section-title">' + catNames[cat] + '</div>';
+    for (var j = 0; j < items.length; j++) {
+      var d = items[j];
+      var qty = cart[d.id] || 0;
+      html += '<div class="dish-card">';
+      html += '<div class="dish-emoji">' + d.emoji + '</div>';
+      html += '<div class="dish-info">';
+      html += '<div class="dish-name">' + d.name + '</div>';
+      html += '<div class="dish-desc">' + d.desc + '</div>';
+      html += '<div class="dish-bottom"><div class="dish-price">&yen;' + d.price + '</div>';
+      if (qty > 0) {
+        html += '<div class="qty-control">';
+        html += '<button class="qty-btn" onclick="changeQty(' + d.id + ',-1)">&minus;</button>';
+        html += '<span class="qty-num">' + qty + '</span>';
+        html += '<button class="qty-btn" onclick="changeQty(' + d.id + ',1)">+</button>';
+        html += '</div>';
+      } else {
+        html += '<button class="add-btn" onclick="changeQty(' + d.id + ',1)">+</button>';
+      }
+      html += '</div></div></div>';
+    }
+  }
+  section.innerHTML = html;
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  updateCart();
+  renderMenu();
+}
+
+// 分类切换 - 直接绑定
+var tabBtns = document.querySelectorAll('.tab');
+for (var t = 0; t < tabBtns.length; t++) {
+  (function(btn) {
+    btn.onclick = function() {
+      for (var i = 0; i < tabBtns.length; i++) tabBtns[i].className = 'tab';
+      btn.className = 'tab active';
+      currentCat = btn.getAttribute('data-cat');
+      renderMenu();
+    };
+  })(tabBtns[t]);
+}
+
+function updateCart() {
+  var totalQty = 0, totalPrice = 0;
+  var keys = Object.keys(cart);
+  for (var i = 0; i < keys.length; i++) {
+    var id = parseInt(keys[i]);
+    var qty = cart[keys[i]];
+    var dish = findDish(id);
+    if (dish) {
+      totalQty += qty;
+      totalPrice += dish.price * qty;
+    }
+  }
+  document.getElementById('cartBadge').innerHTML = totalQty;
+  document.getElementById('cartTotal').innerHTML = totalQty > 0 ? '&yen;' + totalPrice : '0';
+}
+
+// 随机推荐
+document.getElementById('randomBtn').onclick = function() {
+  var idx = Math.floor(Math.random() * dishes.length);
+  var d = dishes[idx];
+  var card = document.getElementById('randomCard');
+  card.innerHTML = '<div class="r-emoji">' + d.emoji + '</div>' +
+    '<div class="r-name">' + d.name + '</div>' +
+    '<div class="r-price">&yen;' + d.price + '</div>' +
+    '<div class="r-desc">' + d.desc + '</div>' +
+    '<button id="randomAddBtn">加进购物车</button>';
+  document.getElementById('randomWrap').className = 'popup-center show';
+  document.getElementById('randomAddBtn').onclick = function() {
+    cart[d.id] = (cart[d.id] || 0) + 1;
+    updateCart();
+    renderMenu();
+    document.getElementById('randomWrap').className = 'popup-center';
+  };
+};
+document.getElementById('randomWrap').onclick = function(e) {
+  if (e.target === this) this.className = 'popup-center';
+};
+
+// 下单
+document.getElementById('orderBtn').onclick = function() {
+  var keys = Object.keys(cart);
+  var entries = [];
+  for (var i = 0; i < keys.length; i++) {
+    if (cart[keys[i]] > 0) entries.push({ id: parseInt(keys[i]), qty: cart[keys[i]] });
+  }
+  if (entries.length === 0) {
+    alert('购物车是空的哦~先选几道菜吧');
+    return;
+  }
+  var panel = document.getElementById('orderPanel');
+  var html = '<h2>我的订单</h2>';
+  var total = 0;
+  for (var i = 0; i < entries.length; i++) {
+    var entry = entries[i];
+    var d = findDish(entry.id);
+    var sub = d.price * entry.qty;
+    total += sub;
+    html += '<div class="order-item">';
+    html += '<span class="oi-name">' + d.emoji + ' ' + d.name + '</span>';
+    html += '<span class="oi-qty">x' + entry.qty + '</span>';
+    html += '<span class="oi-price">&yen;' + sub + '</span>';
+    html += '</div>';
+  }
+  html += '<div class="order-total-row"><span>合计</span><span class="total-price">&yen;' + total + '</span></div>';
+  html += '<textarea class="order-note" id="orderNote" placeholder="备注：比如少辣、多放醋、不要香菜..."></textarea>';
+  html += '<div class="order-actions">';
+  html += '<button class="btn-cancel" id="cancelOrderBtn">再看看</button>';
+  html += '<button class="btn-confirm" id="confirmOrderBtn">确认下单</button>';
+  html += '</div>';
+  panel.innerHTML = html;
+  document.getElementById('orderWrap').className = 'popup-bottom show';
+
+  document.getElementById('cancelOrderBtn').onclick = function() {
+    document.getElementById('orderWrap').className = 'popup-bottom';
+  };
+  document.getElementById('confirmOrderBtn').onclick = function() {
+    document.getElementById('orderWrap').className = 'popup-bottom';
+    document.getElementById('successWrap').className = 'popup-center show';
+    cart = {};
+    updateCart();
+    renderMenu();
+  };
+};
+document.getElementById('orderBg').onclick = function() {
+  document.getElementById('orderWrap').className = 'popup-bottom';
+};
+
+// 成功关闭
+document.getElementById('successBtn').onclick = function() {
+  document.getElementById('successWrap').className = 'popup-center';
+};
+
+// 初始化
+renderMenu();
+updateCart();
+</script>
+</body>
+</html>
