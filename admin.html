@@ -129,21 +129,49 @@
 
 <script>
 // ====== 配置区（和 index.html 保持一致）======
-var API_URL = 'https://jsonblob.com/api/jsonBlob/01a0f33c-396e-7b31-b829-59f1747a74f8';
+var GITEE_USER = 'panlihan';
+var GITEE_REPO = 'xiaozai';
+var GITEE_TOKEN = 'd750e8819c86cd4f9ad5d83f4d2c2fdd';
+var GITEE_BRANCH = 'master';
+var API_URL = 'https://gitee.com/api/v5/repos/' + GITEE_USER + '/' + GITEE_REPO + '/contents/orders.json';
 // ============================================
 
-function loadOrders(callback) {
+function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(str) { return decodeURIComponent(escape(atob(str.replace(/\s/g, '')))); }
+
+// 读取订单，返回订单数组和文件 sha
+function getOrders(callback) {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', API_URL, true);
+  xhr.open('GET', API_URL + '?access_token=' + GITEE_TOKEN + '&ref=' + GITEE_BRANCH, true);
   xhr.onload = function() {
     if (xhr.status === 200) {
-      try { callback(JSON.parse(xhr.responseText)); } catch(e) { callback([]); }
-    } else {
-      callback([]);
-    }
+      try {
+        var data = JSON.parse(xhr.responseText);
+        callback(JSON.parse(b64decode(data.content)), data.sha);
+      } catch (e) { callback([], null); }
+    } else { callback([], null); }
   };
-  xhr.onerror = function() { callback([]); };
+  xhr.onerror = function() { callback([], null); };
   xhr.send();
+}
+
+// 保存订单
+function saveOrders(orders, sha, callback) {
+  var body = 'access_token=' + encodeURIComponent(GITEE_TOKEN) +
+    '&content=' + encodeURIComponent(b64encode(JSON.stringify(orders))) +
+    '&message=' + encodeURIComponent('update orders') +
+    '&branch=' + GITEE_BRANCH +
+    '&sha=' + encodeURIComponent(sha || '');
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', API_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.onload = function() { callback(xhr.status === 200 || xhr.status === 201); };
+  xhr.onerror = function() { callback(false); };
+  xhr.send(body);
+}
+
+function loadOrders(callback) {
+  getOrders(function(orders) { callback(orders); });
 }
 
 function renderOrders(orders) {
@@ -189,19 +217,16 @@ document.getElementById('refreshBtn').onclick = refresh;
 
 document.getElementById('clearBtn').onclick = function() {
   if (confirm('确定要清空所有订单吗？此操作不可恢复！')) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('PUT', API_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function() {
-      if (xhr.status === 200 || xhr.status === 201) {
-        alert('已清空');
-        refresh();
-      } else {
-        alert('清空失败');
-      }
-    };
-    xhr.onerror = function() { alert('网络错误'); };
-    xhr.send('[]');
+    getOrders(function(orders, sha) {
+      saveOrders([], sha, function(ok) {
+        if (ok) {
+          alert('已清空');
+          refresh();
+        } else {
+          alert('清空失败');
+        }
+      });
+    });
   }
 };
 

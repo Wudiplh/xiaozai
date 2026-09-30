@@ -333,9 +333,47 @@
 </div>
 
 <script>
-// ====== 配置区 ======
-var API_URL = 'https://jsonblob.com/api/jsonBlob/01a0f33c-396e-7b31-b829-59f1747a74f8';
-// ====================
+// ====== 配置区（Gitee 存储）======
+var GITEE_USER = 'panlihan';
+var GITEE_REPO = 'xiaozai';
+var GITEE_TOKEN = 'd750e8819c86cd4f9ad5d83f4d2c2fdd';
+var GITEE_BRANCH = 'master';
+var API_URL = 'https://gitee.com/api/v5/repos/' + GITEE_USER + '/' + GITEE_REPO + '/contents/orders.json';
+// ================================
+
+function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(str) { return decodeURIComponent(escape(atob(str.replace(/\s/g, '')))); }
+
+// 读取订单，返回订单数组和文件 sha
+function getOrders(callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', API_URL + '?access_token=' + GITEE_TOKEN + '&ref=' + GITEE_BRANCH, true);
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        callback(JSON.parse(b64decode(data.content)), data.sha);
+      } catch (e) { callback([], null); }
+    } else { callback([], null); }
+  };
+  xhr.onerror = function() { callback([], null); };
+  xhr.send();
+}
+
+// 保存订单
+function saveOrders(orders, sha, callback) {
+  var body = 'access_token=' + encodeURIComponent(GITEE_TOKEN) +
+    '&content=' + encodeURIComponent(b64encode(JSON.stringify(orders))) +
+    '&message=' + encodeURIComponent('update orders') +
+    '&branch=' + GITEE_BRANCH +
+    '&sha=' + encodeURIComponent(sha || '');
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', API_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.onload = function() { callback(xhr.status === 200 || xhr.status === 201); };
+  xhr.onerror = function() { callback(false); };
+  xhr.send(body);
+}
 
 var dishes = [
   // 荤菜
@@ -524,41 +562,19 @@ function submitOrder(name, note, entries) {
     time: new Date().toLocaleString('zh-CN')
   };
 
-  // 先读取现有订单
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', API_URL, true);
-  xhr.onload = function() {
-    var orders = [];
-    if (xhr.status === 200) {
-      try { orders = JSON.parse(xhr.responseText); } catch(e) { orders = []; }
-    }
+  // 先读取现有订单，再写入
+  getOrders(function(orders, sha) {
     orders.push(order);
-    // 写入更新后的订单
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open('PUT', API_URL, true);
-    xhr2.setRequestHeader('Content-Type', 'application/json');
-    xhr2.onload = function() {
-      if (xhr2.status === 200 || xhr2.status === 201) {
+    saveOrders(orders, sha, function(ok) {
+      if (ok) {
         showSuccess();
       } else {
         alert('提交失败，请重试');
         btn.innerHTML = '确认下单';
         btn.className = 'btn-confirm';
       }
-    };
-    xhr2.onerror = function() {
-      alert('网络错误，请重试');
-      btn.innerHTML = '确认下单';
-      btn.className = 'btn-confirm';
-    };
-    xhr2.send(JSON.stringify(orders));
-  };
-  xhr.onerror = function() {
-    alert('网络错误，请重试');
-    btn.innerHTML = '确认下单';
-    btn.className = 'btn-confirm';
-  };
-  xhr.send();
+    });
+  });
 }
 
 function showSuccess() {
