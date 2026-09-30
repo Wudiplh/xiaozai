@@ -1,1 +1,246 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="30">
+<title>订单后台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .header h1 { font-size: 22px; margin-bottom: 6px; }
+  .header p { font-size: 13px; opacity: 0.85; }
+  .stats {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .stat-box {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px 18px;
+    flex: 1;
+    text-align: center;
+  }
+  .stat-box .num { font-size: 28px; font-weight: bold; }
+  .stat-box .label { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .order-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #eee;
+  }
+  .order-name { font-size: 17px; font-weight: bold; color: #667eea; }
+  .order-time { font-size: 12px; color: #999; }
+  .order-items { font-size: 14px; line-height: 1.8; color: #555; }
+  .order-note {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #888;
+  }
+  .order-note::before { content: '备注：'; color: #aaa; }
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #ccc;
+  }
+  .empty .big { font-size: 50px; margin-bottom: 12px; }
+  .refresh-btn {
+    display: block;
+    margin: 20px auto;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 36px;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    outline: none;
+  }
+  .clear-btn {
+    display: block;
+    margin: 10px auto;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    padding: 10px 30px;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+  }
+  .mode-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 3px 10px;
+    font-size: 11px;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#x1F4CB; 订单后台</h1>
+  <p>实时查看别人提交的点菜单</p>
+  <div class="mode-tag" id="modeTag"></div>
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num" id="totalOrders">0</div>
+      <div class="label">总订单数</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="todayOrders">0</div>
+      <div class="label">今日订单</div>
+    </div>
+  </div>
+</div>
+
+<div id="orderList"></div>
+
+<button class="refresh-btn" id="refreshBtn">&#x1F504; 刷新订单</button>
+<button class="clear-btn" id="clearBtn">&#x1F5D1;&#xFE0F; 清空所有订单</button>
+
+<script>
+// ====== 配置区（和 index.html 保持一致）======
+var GITHUB_USER = 'wudiplx';
+var GITHUB_REPO = 'xiaocai';
+var GITHUB_TOKEN = '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';
+var GITHUB_BRANCH = 'main';
+// ============================================
+
+function loadOrders(callback) {
+  if (GITHUB_TOKEN) {
+    var apiUrl = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json?ref=' + GITHUB_BRANCH;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', apiUrl, true);
+    xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          var orders = JSON.parse(atob(resp.content));
+          callback(orders);
+        } catch(e) { callback([]); }
+      } else {
+        callback([]);
+      }
+    };
+    xhr.onerror = function() { callback([]); };
+    xhr.send();
+  } else {
+    var orders = [];
+    try { orders = JSON.parse(localStorage.getItem('diancai_orders') || '[]'); } catch(e) {}
+    callback(orders);
+  }
+}
+
+function renderOrders(orders) {
+  var list = document.getElementById('orderList');
+  var today = new Date().toLocaleDateString('zh-CN');
+  var todayCount = 0;
+
+  if (orders.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="big">&#x1F634;</div><p>还没有人下单哦~</p></div>';
+    document.getElementById('totalOrders').innerHTML = '0';
+    document.getElementById('todayOrders').innerHTML = '0';
+    return;
+  }
+
+  var html = '';
+  for (var i = orders.length - 1; i >= 0; i--) {
+    var o = orders[i];
+    var isToday = o.time && o.time.indexOf(today) >= 0;
+    if (isToday) todayCount++;
+    html += '<div class="order-card">';
+    html += '<div class="order-header">';
+    html += '<span class="order-name">&#x1F464; ' + o.name + '</span>';
+    html += '<span class="order-time">' + o.time + '</span>';
+    html += '</div>';
+    html += '<div class="order-items">' + o.items + '</div>';
+    if (o.note && o.note !== '无') {
+      html += '<div class="order-note">' + o.note + '</div>';
+    }
+    html += '</div>';
+  }
+  list.innerHTML = html;
+  document.getElementById('totalOrders').innerHTML = orders.length;
+  document.getElementById('todayOrders').innerHTML = todayCount;
+}
+
+function refresh() {
+  loadOrders(function(orders) {
+    renderOrders(orders);
+  });
+}
+
+document.getElementById('refreshBtn').onclick = refresh;
+
+document.getElementById('clearBtn').onclick = function() {
+  if (confirm('确定要清空所有订单吗？此操作不可恢复！')) {
+    if (GITHUB_TOKEN) {
+      var apiUrl = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json?ref=' + GITHUB_BRANCH;
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', apiUrl, true);
+      xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          var resp = JSON.parse(xhr.responseText);
+          var xhr2 = new XMLHttpRequest();
+          xhr2.open('DELETE', 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/orders.json', true);
+          xhr2.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+          xhr2.setRequestHeader('Content-Type', 'application/json');
+          xhr2.onload = function() {
+            if (xhr2.status === 200) {
+              alert('已清空');
+              refresh();
+            } else {
+              alert('清空失败');
+            }
+          };
+          xhr2.send(JSON.stringify({ message: 'clear orders', sha: resp.sha, branch: GITHUB_BRANCH }));
+        }
+      };
+      xhr.send();
+    } else {
+      localStorage.removeItem('diancai_orders');
+      alert('已清空');
+      refresh();
+    }
+  }
+};
+
+// 模式提示
+document.getElementById('modeTag').innerHTML = GITHUB_TOKEN ? 'GitHub 云同步模式' : '本地模式（仅本机可见）';
+
+refresh();
+</script>
+</body>
+</html>
