@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="refresh" content="60">
 <title>今日菜单</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -89,7 +90,6 @@
   .dish-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 3px; }
   .dish-desc { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dish-bottom { display: flex; align-items: center; margin-top: 6px; }
-  .dish-price { font-size: 16px; font-weight: bold; color: #ff6b81; }
   .add-btn {
     width: 36px; height: 36px;
     border-radius: 50%;
@@ -155,7 +155,7 @@
     justify-content: center;
     font-weight: bold;
   }
-  .cart-total { font-size: 20px; font-weight: bold; color: #ff6b81; }
+  .cart-total { font-size: 16px; font-weight: bold; color: #ff6b81; }
   .order-btn {
     background: linear-gradient(135deg, #ff9a9e, #ff6b81);
     border: none;
@@ -219,8 +219,7 @@
     margin: 0 20px;
   }
   .random-card .r-emoji { font-size: 60px; margin-bottom: 12px; }
-  .random-card .r-name { font-size: 20px; font-weight: bold; color: #ff6b81; margin-bottom: 6px; }
-  .random-card .r-price { font-size: 16px; color: #999; margin-bottom: 16px; }
+  .random-card .r-name { font-size: 20px; font-weight: bold; color: #ff6b81; margin-bottom: 12px; }
   .random-card .r-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5; }
   .random-card button {
     background: linear-gradient(135deg, #ff9a9e, #fecfef);
@@ -244,15 +243,6 @@
   }
   .order-item .oi-name { flex: 1; }
   .order-item .oi-qty { color: #999; margin: 0 12px; }
-  .order-item .oi-price { color: #ff6b81; font-weight: bold; min-width: 60px; text-align: right; }
-  .order-total-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 16px 0 8px;
-    font-size: 16px;
-    font-weight: bold;
-  }
-  .order-total-row .total-price { color: #ff6b81; font-size: 20px; }
   .order-note {
     width: 100%;
     border: 1px dashed #ddd;
@@ -372,10 +362,7 @@ var dishes = [
   { id: 14, name: '紫菜蛋花汤', emoji: '\uD83C\uDF3F', cat: 'soup', price: 12, desc: '清淡鲜美，百喝不腻' },
   { id: 15, name: '玉米排骨汤', emoji: '\uD83C\uDF3D', cat: 'soup', price: 35, desc: '炖了两个小时，鲜到掉眉毛' },
   { id: 16, name: '酸辣汤', emoji: '\uD83C\uDF5C', cat: 'soup', price: 18, desc: '酸酸辣辣，喝完浑身舒坦' },
-  { id: 17, name: '蛋炒饭', emoji: '\uD83C\uDF5A', cat: 'staple', price: 15, desc: '粒粒分明，金黄诱人' },
-  { id: 18, name: '手工水饺', emoji: '\uD83E\uDD5F', cat: 'staple', price: 22, desc: '皮薄馅大，老板亲手包的' },
-  { id: 19, name: '葱油拌面', emoji: '\uD83C\uDF5C', cat: 'staple', price: 16, desc: '葱香四溢，简单却上头' },
-  { id: 20, name: '小笼包(6个)', emoji: '\uD83E\uDD5F', cat: 'staple', price: 20, desc: '皮薄汁多，一口一个' },
+  { id: 17, name: '五常大米饭', emoji: '\uD83C\uDF5A', cat: 'staple', price: 0, desc: '粒粒分明，香软可口' },
 ];
 
 var catNames = { hot: '\uD83D\uDD25 热菜', cold: '\uD83E\uDD57 凉菜', soup: '\uD83C\uDF72 汤羹', staple: '\uD83C\uDF5A 主食' };
@@ -410,7 +397,7 @@ function renderMenu() {
       html += '<div class="dish-info">';
       html += '<div class="dish-name">' + d.name + '</div>';
       html += '<div class="dish-desc">' + d.desc + '</div>';
-      html += '<div class="dish-bottom"><div class="dish-price">&yen;' + d.price + '</div>';
+      html += '<div class="dish-bottom">';
       if (qty > 0) {
         html += '<div class="qty-control">';
         html += '<button class="qty-btn" onclick="changeQty(' + d.id + ',-1)">&minus;</button>';
@@ -447,19 +434,15 @@ for (var t = 0; t < tabBtns.length; t++) {
 }
 
 function updateCart() {
-  var totalQty = 0, totalPrice = 0;
+  var totalQty = 0;
   var keys = Object.keys(cart);
   for (var i = 0; i < keys.length; i++) {
     var id = parseInt(keys[i]);
     var qty = cart[keys[i]];
-    var dish = findDish(id);
-    if (dish) {
-      totalQty += qty;
-      totalPrice += dish.price * qty;
-    }
+    totalQty += qty;
   }
   document.getElementById('cartBadge').innerHTML = totalQty;
-  document.getElementById('cartTotal').innerHTML = totalQty > 0 ? '&yen;' + totalPrice : '0';
+  document.getElementById('cartTotal').innerHTML = totalQty > 0 ? totalQty + '道' : '0';
 }
 
 // 随机推荐
@@ -469,7 +452,6 @@ document.getElementById('randomBtn').onclick = function() {
   var card = document.getElementById('randomCard');
   card.innerHTML = '<div class="r-emoji">' + d.emoji + '</div>' +
     '<div class="r-name">' + d.name + '</div>' +
-    '<div class="r-price">&yen;' + d.price + '</div>' +
     '<div class="r-desc">' + d.desc + '</div>' +
     '<button id="randomAddBtn">加进购物车</button>';
   document.getElementById('randomWrap').className = 'popup-center show';
@@ -497,19 +479,14 @@ document.getElementById('orderBtn').onclick = function() {
   }
   var panel = document.getElementById('orderPanel');
   var html = '<h2>我的订单</h2>';
-  var total = 0;
   for (var i = 0; i < entries.length; i++) {
     var entry = entries[i];
     var d = findDish(entry.id);
-    var sub = d.price * entry.qty;
-    total += sub;
     html += '<div class="order-item">';
     html += '<span class="oi-name">' + d.emoji + ' ' + d.name + '</span>';
     html += '<span class="oi-qty">x' + entry.qty + '</span>';
-    html += '<span class="oi-price">&yen;' + sub + '</span>';
     html += '</div>';
   }
-  html += '<div class="order-total-row"><span>合计</span><span class="total-price">&yen;' + total + '</span></div>';
   html += '<textarea class="order-note" id="orderNote" placeholder="备注：比如少辣、多放醋、不要香菜..."></textarea>';
   html += '<div class="order-actions">';
   html += '<button class="btn-cancel" id="cancelOrderBtn">再看看</button>';
