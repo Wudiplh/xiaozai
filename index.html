@@ -476,10 +476,20 @@ function updateCart() {
   document.getElementById('cartTotal').innerHTML = totalQty > 0 ? totalQty + '道' : '0';
 }
 
-// 随机推荐
+// 随机推荐（只随机荤菜或素菜，且不与上一道重复）
+var lastRandomId = null;
 document.getElementById('randomBtn').onclick = function() {
-  var idx = Math.floor(Math.random() * dishes.length);
-  var d = dishes[idx];
+  var pool = [];
+  for (var i = 0; i < dishes.length; i++) {
+    if (dishes[i].cat === 'meat' || dishes[i].cat === 'veg') pool.push(dishes[i]);
+  }
+  var candidates = [];
+  for (var j = 0; j < pool.length; j++) {
+    if (pool[j].id !== lastRandomId) candidates.push(pool[j]);
+  }
+  if (candidates.length === 0) candidates = pool;
+  var d = candidates[Math.floor(Math.random() * candidates.length)];
+  lastRandomId = d.id;
   var card = document.getElementById('randomCard');
   card.innerHTML = '<div class="r-emoji">' + d.emoji + '</div>' +
     '<div class="r-name">' + d.name + '</div>' +
