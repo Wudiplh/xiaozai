@@ -6,98 +6,113 @@
 <title>今日点餐 · 吃啥</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body { background:#F6EEE3; }
-  body { font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; color:#5B4636; min-height:100vh; }
-  .app { max-width:480px; margin:0 auto; min-height:100vh; background:#FAF4EC; padding-bottom:120px; box-shadow:0 0 40px rgba(140,100,70,.12); position:relative; }
+  html,body { background:#EFE9DE; }
+  body { font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; color:#3D3226; min-height:100vh; }
+  .app { max-width:480px; margin:0 auto; min-height:100vh; background:linear-gradient(180deg,#FDFAF4 0%,#F9F4E9 45%,#F4EDDF 100%); padding-bottom:130px; box-shadow:0 0 60px rgba(150,120,80,.16); position:relative; isolation:isolate; }
+  /* 细腻噪点，纸张奶油质感 */
+  .app::before { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.4;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"); }
 
-  /* 顶栏 */
-  .top-bar { display:flex; align-items:center; justify-content:center; padding:16px 16px 4px; }
-  .top-bar .t-title { font-size:14px; font-weight:600; color:#A98C74; letter-spacing:3px; }
+  /* 顶栏（毛玻璃吸顶） */
+  .top-bar { position:sticky; top:0; z-index:60; display:flex; align-items:center; justify-content:center; padding:14px 16px 12px; background:rgba(253,250,244,.82); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid rgba(180,150,100,.15); }
+  .top-bar .t-title { font-size:13px; font-weight:600; color:#B08C55; letter-spacing:6px; }
 
   /* 头图区 */
-  .hero { padding:10px 20px 0; }
-  .hero .label { display:inline-block; font-size:12px; color:#C17F59; background:#fff; border:1px solid #EBD6C2; padding:3px 12px; border-radius:999px; margin-bottom:10px; font-weight:500; }
-  .hero .big { font-size:44px; font-weight:900; color:#6B4A32; letter-spacing:6px; line-height:1.15; }
-  .hero .slogan { font-size:13px; color:#A98C74; margin-top:8px; }
-  .hero .date { font-size:12px; color:#BDA186; margin-top:4px; }
+  .hero { padding:14px 22px 0; }
+  .hero .label { display:inline-block; font-size:12px; color:#A1823F; background:linear-gradient(135deg,#FFFDF6,#F8F1E0); border:1px solid rgba(176,140,85,.3); padding:4px 14px; border-radius:999px; margin-bottom:12px; font-weight:500; letter-spacing:3px; }
+  .hero .big { font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif; font-size:54px; font-weight:900; letter-spacing:10px; line-height:1.15; background:linear-gradient(135deg,#5C4630 0%,#A8854F 60%,#7A5C33 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero .slogan { font-size:13px; color:#A3937D; margin-top:10px; letter-spacing:1px; }
+  .hero .date { font-size:12px; color:#B5A78F; margin-top:5px; letter-spacing:.5px; }
   .hero .illus { width:100%; border-radius:20px; margin-top:14px; display:block; }
-  .random-pill { display:block; width:100%; margin-top:12px; border:1.5px dashed #D9B696; background:#FFF9F1; color:#C17F59; font-size:13px; font-weight:600; padding:11px 0; border-radius:999px; cursor:pointer; }
+  .random-pill { display:block; width:100%; margin-top:16px; border:1.5px dashed rgba(176,140,85,.45); background:rgba(255,253,248,.75); color:#A1823F; font-size:13.5px; font-weight:600; padding:12px 0; border-radius:999px; cursor:pointer; letter-spacing:1px; transition:all .25s ease; }
+  .random-pill:active { transform:scale(.98); background:rgba(240,231,213,.8); }
 
   /* 分类药丸 */
-  .pills { display:flex; gap:8px; overflow-x:auto; padding:18px 16px 6px; }
+  .pills { display:flex; gap:8px; overflow-x:auto; padding:20px 16px 8px; }
   .pills::-webkit-scrollbar { display:none; }
-  .pill { flex-shrink:0; border:none; background:#F0E3D2; color:#8A6F5B; font-size:13px; padding:8px 16px; border-radius:999px; cursor:pointer; font-weight:500; }
-  .pill.active { background:#C17F59; color:#fff; font-weight:600; box-shadow:0 4px 12px rgba(193,127,89,.35); }
+  .pill { flex-shrink:0; border:1px solid rgba(190,165,120,.28); background:rgba(255,255,255,.6); color:#8C7F6E; font-size:13px; padding:9px 18px; border-radius:999px; cursor:pointer; font-weight:500; transition:all .25s ease; }
+  .pill.active { background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; font-weight:600; box-shadow:0 6px 16px rgba(190,158,98,.3); transform:translateY(-1px); border-color:transparent; }
+  .pill:active { transform:scale(.95); }
 
   /* 菜单区头部 */
-  .menu-head { display:flex; align-items:flex-end; justify-content:space-between; padding:16px 16px 10px; }
-  .menu-head .left .mh-title { font-size:20px; font-weight:800; color:#6B4A32; }
-  .menu-head .left .mh-sub { font-size:12px; color:#BDA186; margin-top:3px; }
-  .reset-btn { border:1.5px solid #E0C3A6; background:transparent; color:#C17F59; font-size:12px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer; }
+  .menu-head { display:flex; align-items:flex-end; justify-content:space-between; padding:18px 16px 10px; }
+  .menu-head .left .mh-title { font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif; font-size:22px; font-weight:900; color:#3D3226; letter-spacing:3px; }
+  .menu-head .left .mh-sub { font-size:12px; color:#A3937D; margin-top:4px; letter-spacing:.5px; }
+  .reset-btn { border:1.5px solid rgba(176,140,85,.35); background:rgba(255,253,248,.6); color:#A1823F; font-size:12px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer; transition:all .2s ease; }
+  .reset-btn:active { transform:scale(.95); background:rgba(240,231,213,.8); }
 
   /* 菜单 */
   .menu-section { padding:0 16px; }
-  .section-title { font-size:14px; font-weight:700; color:#8A6F5B; margin:16px 2px 10px; }
+  .section-title { display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:700; color:#A08A68; margin:20px 2px 12px; letter-spacing:3px; }
+  .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(176,140,85,.3),transparent); }
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .dish-card { background:#fff; border-radius:18px; padding:10px; box-shadow:0 2px 10px rgba(140,100,70,.08); display:flex; flex-direction:column; }
-  .dish-card.picked { outline:2px solid #C17F59; }
-  .dish-img { width:100%; height:104px; border-radius:14px; background:#F8EFE2; object-fit:cover; display:block; }
-  .dish-placeholder { display:flex; align-items:center; justify-content:center; font-size:44px; }
-  .dish-name { font-size:15px; font-weight:700; color:#6B4A32; margin-top:10px; }
-  .dish-meta { font-size:11px; color:#C4A88F; margin-top:2px; }
+  .dish-card { background:#FFFEFA; border:1px solid rgba(185,155,105,.18); border-radius:20px; padding:10px; box-shadow:0 1px 2px rgba(150,120,80,.04),0 8px 24px rgba(150,120,80,.08); display:flex; flex-direction:column; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .dish-card:active { transform:scale(.97); }
+  .dish-card.picked { border-color:rgba(190,158,98,.85); box-shadow:0 2px 4px rgba(190,158,98,.1),0 10px 28px rgba(190,158,98,.18); }
+  .dish-img { width:100%; height:112px; border-radius:14px; background:linear-gradient(135deg,#F6EFDF,#EFE5D0); object-fit:cover; display:block; }
+  .dish-placeholder { display:flex; align-items:center; justify-content:center; font-size:46px; }
+  .dish-name { font-size:15px; font-weight:700; color:#3D3226; margin-top:10px; letter-spacing:.5px; }
+  .dish-meta { font-size:11px; color:#B5A78F; margin-top:3px; letter-spacing:.5px; }
   .dish-bottom { margin-top:10px; }
-  .select-btn { width:100%; border:1.5px solid #C17F59; background:transparent; color:#C17F59; padding:8px 0; border-radius:999px; font-size:13px; cursor:pointer; font-weight:600; }
-  .select-btn.selected { background:#C17F59; color:#fff; border-color:#C17F59; }
+  .select-btn { width:100%; border:1.5px solid rgba(176,140,85,.6); background:transparent; color:#A1823F; padding:8px 0; border-radius:999px; font-size:13px; cursor:pointer; font-weight:600; transition:all .2s ease; }
+  .select-btn:active { background:rgba(176,140,85,.1); transform:scale(.97); }
+  .select-btn.selected { background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; border-color:transparent; box-shadow:0 4px 12px rgba(190,158,98,.3); }
   .qty-row { display:flex; align-items:center; gap:8px; }
-  .qty-row .q-info { flex:1; text-align:center; background:#C17F59; color:#fff; font-size:12px; font-weight:700; padding:8px 0; border-radius:999px; }
-  .qty-btn { width:32px; height:32px; border:none; border-radius:50%; background:#F0E3D2; color:#8A6F5B; font-size:16px; font-weight:700; cursor:pointer; }
-  .qty-btn:active { background:#E3CFB6; }
-  .empty-tip { text-align:center; color:#C4A88F; font-size:13px; padding:40px 0; }
+  .qty-row .q-info { flex:1; text-align:center; background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; font-size:12px; font-weight:700; padding:8px 0; border-radius:999px; box-shadow:0 4px 12px rgba(190,158,98,.3); }
+  .qty-btn { width:32px; height:32px; border:none; border-radius:50%; background:#F2EADA; color:#A1823F; font-size:16px; font-weight:700; cursor:pointer; transition:all .15s ease; }
+  .qty-btn:active { transform:scale(.88); background:#E6D9BE; }
+  .empty-tip { text-align:center; color:#B5A78F; font-size:13px; padding:40px 0; letter-spacing:1px; }
 
   /* 底部确认栏 */
-  .confirm-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; padding:14px 16px calc(14px + env(safe-area-inset-bottom)); background:linear-gradient(to top,#FAF4EC 62%,rgba(250,244,236,0)); z-index:50; }
-  .confirm-inner { display:flex; align-items:center; gap:12px; background:#fff; border-radius:20px; padding:10px 10px 10px 18px; box-shadow:0 6px 24px rgba(140,100,70,.18); }
-  .confirm-info { font-size:13px; color:#8A6F5B; white-space:nowrap; }
-  .confirm-info b { color:#C17F59; font-size:15px; }
-  .confirm-btn { flex:1; border:none; background:#C17F59; color:#fff; font-size:15px; font-weight:700; padding:13px 0; border-radius:14px; cursor:pointer; }
-  .confirm-btn:active { background:#B06E4B; }
+  .confirm-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; padding:14px 16px calc(14px + env(safe-area-inset-bottom)); background:linear-gradient(to top,#F5EFE2 55%,rgba(245,239,226,0)); z-index:50; }
+  .confirm-inner { display:flex; align-items:center; gap:12px; background:rgba(255,254,250,.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(185,155,105,.22); border-radius:22px; padding:10px 10px 10px 18px; box-shadow:0 12px 32px rgba(150,120,80,.14),0 2px 6px rgba(150,120,80,.08); }
+  .confirm-info { font-size:13px; color:#8C7F6E; white-space:nowrap; }
+  .confirm-info b { color:#A1823F; font-size:16px; }
+  .confirm-btn { flex:1; border:none; background:linear-gradient(135deg,#DCC494,#BE9E66); color:#3D3226; font-size:15px; font-weight:700; padding:13px 0; border-radius:15px; cursor:pointer; letter-spacing:2px; box-shadow:0 8px 20px rgba(190,158,98,.35); transition:transform .15s ease, box-shadow .15s ease; }
+  .confirm-btn:active { transform:scale(.98); box-shadow:0 4px 12px rgba(190,158,98,.28); }
 
   /* 弹窗通用 */
-  .popup-center { display:none; position:fixed; inset:0; background:rgba(90,60,40,.45); z-index:100; align-items:center; justify-content:center; padding:24px; }
+  .popup-center { display:none; position:fixed; inset:0; background:rgba(80,65,45,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:100; align-items:center; justify-content:center; padding:24px; }
   .popup-center.show { display:flex; }
-  .popup-bottom { display:none; position:fixed; inset:0; background:rgba(90,60,40,.45); z-index:100; align-items:flex-end; justify-content:center; }
+  .popup-bottom { display:none; position:fixed; inset:0; background:rgba(80,65,45,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:100; align-items:flex-end; justify-content:center; }
   .popup-bottom.show { display:flex; }
 
   /* 随机推荐卡 */
-  .random-card { background:#fff; border-radius:24px; padding:28px 24px; text-align:center; width:100%; max-width:320px; animation:pop .25s; }
-  @keyframes pop { from { transform:scale(.85); opacity:0; } to { transform:scale(1); opacity:1; } }
-  .random-card .r-emoji { font-size:60px; margin-bottom:12px; }
-  .random-card .r-tag { display:inline-block; font-size:11px; color:#C17F59; background:#FAF0E5; border-radius:999px; padding:3px 10px; margin-bottom:8px; }
-  .random-card .r-name { font-size:20px; font-weight:800; color:#6B4A32; margin-bottom:10px; }
-  .random-card .r-desc { font-size:13px; color:#BDA186; margin-bottom:18px; line-height:1.5; }
-  .random-card button { width:100%; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
+  .random-card { background:#FFFEFA; border:1px solid rgba(185,155,105,.22); border-radius:26px; padding:30px 26px; text-align:center; width:100%; max-width:320px; animation:pop .35s cubic-bezier(.34,1.56,.64,1); box-shadow:0 28px 60px rgba(120,95,60,.22); }
+  @keyframes pop { from { transform:scale(.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .random-card .r-emoji { font-size:64px; margin-bottom:14px; filter:drop-shadow(0 6px 12px rgba(150,120,80,.2)); }
+  .random-card .r-tag { display:inline-block; font-size:11px; color:#A1823F; background:linear-gradient(135deg,#FDFAF1,#F5EDDA); border:1px solid rgba(176,140,85,.25); border-radius:999px; padding:4px 12px; margin-bottom:10px; letter-spacing:2px; }
+  .random-card .r-name { font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif; font-size:24px; font-weight:900; color:#3D3226; margin-bottom:10px; letter-spacing:2px; }
+  .random-card .r-desc { font-size:13px; color:#A3937D; margin-bottom:20px; line-height:1.6; }
+  .random-card button { width:100%; border:none; background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; font-size:14px; font-weight:700; padding:13px 0; border-radius:999px; cursor:pointer; letter-spacing:2px; box-shadow:0 6px 18px rgba(190,158,98,.32); transition:transform .15s ease; }
+  .random-card button:active { transform:scale(.97); }
 
   /* 下单面板 */
-  .order-panel { background:#fff; width:100%; max-width:480px; border-radius:24px 24px 0 0; padding:22px 20px calc(20px + env(safe-area-inset-bottom)); animation:up .25s; }
-  @keyframes up { from { transform:translateY(40px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-  .order-panel h2 { font-size:18px; color:#6B4A32; margin-bottom:14px; text-align:center; }
-  .order-name-input { width:100%; border:1.5px solid #E0C3A6; border-radius:12px; padding:12px 14px; font-size:14px; margin-bottom:12px; outline:none; background:#FFFDF9; color:#5B4636; }
-  .order-name-input:focus { border-color:#C17F59; }
-  .order-item { display:flex; justify-content:space-between; font-size:14px; color:#5B4636; padding:9px 2px; border-bottom:1px dashed #F0E3D2; }
-  .oi-qty { color:#C17F59; font-weight:700; }
-  .order-note { width:100%; height:70px; border:1.5px solid #E0C3A6; border-radius:12px; padding:12px 14px; font-size:13px; margin:12px 0; outline:none; resize:none; background:#FFFDF9; color:#5B4636; font-family:inherit; }
-  .order-note:focus { border-color:#C17F59; }
-  .order-actions { display:flex; gap:10px; }
-  .btn-cancel { flex:1; border:1.5px solid #E0C3A6; background:#fff; color:#8A6F5B; font-size:14px; font-weight:600; padding:12px 0; border-radius:999px; cursor:pointer; }
-  .btn-confirm { flex:2; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
+  .order-panel { background:#FFFEFA; width:100%; max-width:480px; border-radius:26px 26px 0 0; padding:24px 20px calc(22px + env(safe-area-inset-bottom)); animation:up .3s cubic-bezier(.22,.9,.36,1); box-shadow:0 -14px 44px rgba(120,95,60,.18); }
+  @keyframes up { from { transform:translateY(50px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  .order-panel h2 { font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif; font-size:19px; color:#3D3226; margin-bottom:16px; text-align:center; letter-spacing:3px; }
+  .order-name-input { width:100%; border:1.5px solid rgba(176,140,85,.3); border-radius:14px; padding:13px 14px; font-size:14px; margin-bottom:12px; outline:none; background:#FDFAF2; color:#3D3226; transition:border-color .2s ease; }
+  .order-name-input::placeholder { color:#BBAE97; }
+  .order-name-input:focus { border-color:#BE9E66; }
+  .order-item { display:flex; justify-content:space-between; font-size:14px; color:#5A4C3A; padding:10px 2px; border-bottom:1px dashed rgba(176,140,85,.22); }
+  .oi-qty { color:#A1823F; font-weight:700; }
+  .order-note { width:100%; height:72px; border:1.5px solid rgba(176,140,85,.3); border-radius:14px; padding:12px 14px; font-size:13px; margin:12px 0; outline:none; resize:none; background:#FDFAF2; color:#5A4C3A; font-family:inherit; transition:border-color .2s ease; }
+  .order-note::placeholder { color:#BBAE97; }
+  .order-note:focus { border-color:#BE9E66; }
+  .order-actions { display:flex; gap:10px; margin-top:4px; }
+  .btn-cancel { flex:1; border:1.5px solid rgba(176,140,85,.3); background:#FFFEFA; color:#8C7F6E; font-size:14px; font-weight:600; padding:12px 0; border-radius:999px; cursor:pointer; transition:all .2s ease; }
+  .btn-cancel:active { transform:scale(.97); background:#F5EFE2; }
+  .btn-confirm { flex:2; border:none; background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; letter-spacing:2px; box-shadow:0 6px 18px rgba(190,158,98,.32); transition:transform .15s ease; }
+  .btn-confirm:active { transform:scale(.97); }
   .btn-confirm.submitting { opacity:.6; }
 
   /* 成功弹窗 */
-  .success-card { background:#fff; border-radius:24px; padding:32px 28px; text-align:center; width:100%; max-width:300px; animation:pop .25s; }
-  .success-card .s-emoji { font-size:56px; margin-bottom:12px; }
-  .success-card .s-title { font-size:20px; font-weight:800; color:#6B4A32; margin-bottom:8px; }
-  .success-card .s-sub { font-size:13px; color:#BDA186; margin-bottom:20px; line-height:1.5; }
-  .success-card button { width:100%; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
+  .success-card { background:#FFFEFA; border:1px solid rgba(185,155,105,.22); border-radius:26px; padding:34px 28px; text-align:center; width:100%; max-width:300px; animation:pop .35s cubic-bezier(.34,1.56,.64,1); box-shadow:0 28px 60px rgba(120,95,60,.22); }
+  .success-card .s-emoji { font-size:58px; margin-bottom:14px; filter:drop-shadow(0 6px 12px rgba(150,120,80,.2)); }
+  .success-card .s-title { font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif; font-size:21px; font-weight:900; color:#3D3226; margin-bottom:8px; letter-spacing:2px; }
+  .success-card .s-sub { font-size:13px; color:#A3937D; margin-bottom:22px; line-height:1.6; }
+  .success-card button { width:100%; border:none; background:linear-gradient(135deg,#D9C08F,#BE9E66); color:#3D3226; font-size:14px; font-weight:700; padding:13px 0; border-radius:999px; cursor:pointer; letter-spacing:2px; box-shadow:0 6px 18px rgba(190,158,98,.32); transition:transform .15s ease; }
+  .success-card button:active { transform:scale(.97); }
 </style>
 </head>
 <body>
