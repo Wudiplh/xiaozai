@@ -3,333 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="refresh" content="60">
-<title>今日菜单</title>
+<title>今日点餐 · 吃啥</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-    background: #fff5f5;
-    color: #333;
-    min-height: 100vh;
-    padding-bottom: 90px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .header {
-    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%);
-    padding: 24px 20px 20px;
-    text-align: center;
-  }
-  .header h1 { font-size: 22px; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.1); }
-  .header .subtitle { font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; }
-  .header .mascot { font-size: 40px; margin-bottom: 8px; }
-  .random-btn {
-    display: block;
-    margin: 14px auto 0;
-    background: #fff;
-    border: 2px dashed #ff9a9e;
-    border-radius: 25px;
-    padding: 10px 24px;
-    font-size: 14px;
-    color: #ff6b81;
-    cursor: pointer;
-    outline: none;
-  }
-  .tabs {
-    display: flex;
-    overflow-x: auto;
-    padding: 12px 16px;
-    gap: 8px;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    flex-shrink: 0;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    background: #f5f5f5;
-    color: #666;
-    border: none;
-    cursor: pointer;
-    outline: none;
-  }
-  .tab.active {
-    background: linear-gradient(135deg, #ff9a9e, #fecfef);
-    color: #fff;
-    font-weight: bold;
-  }
-  .menu-section { padding: 12px 16px; }
-  .section-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #ff6b81;
-    margin-bottom: 12px;
-    padding-left: 8px;
-    border-left: 3px solid #ff9a9e;
-  }
-  .dish-card {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 16px;
-    padding: 14px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 10px rgba(255,154,158,0.1);
-  }
-  .dish-emoji { font-size: 36px; margin-right: 14px; flex-shrink: 0; }
-  .dish-info { flex: 1; min-width: 0; }
-  .dish-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 3px; }
-  .dish-desc { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dish-bottom { display: flex; align-items: center; margin-top: 6px; }
-  .add-btn {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff9a9e, #fecfef);
-    border: none;
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-left: 10px;
-    outline: none;
-    line-height: 1;
-  }
-  .qty-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: 10px;
-    flex-shrink: 0;
-  }
-  .qty-btn {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 1.5px solid #ff9a9e;
-    background: #fff;
-    color: #ff6b81;
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    outline: none;
-    line-height: 1;
-  }
-  .qty-num { font-size: 16px; font-weight: bold; color: #ff6b81; min-width: 20px; text-align: center; }
-  .cart-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: #fff;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 -2px 15px rgba(0,0,0,0.08);
-    z-index: 100;
-  }
-  .cart-left { display: flex; align-items: center; gap: 10px; }
-  .cart-icon { font-size: 28px; position: relative; }
-  .cart-badge {
-    position: absolute;
-    top: -6px; right: -8px;
-    background: #ff6b81;
-    color: #fff;
-    font-size: 11px;
-    min-width: 18px; height: 18px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-  }
-  .cart-total { font-size: 16px; font-weight: bold; color: #ff6b81; }
-  .order-btn {
-    background: linear-gradient(135deg, #ff9a9e, #ff6b81);
-    border: none;
-    border-radius: 25px;
-    padding: 10px 28px;
-    color: #fff;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    outline: none;
-  }
-  .popup-center {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
-  .popup-center.show { display: flex; }
-  .popup-bottom {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 1000;
-  }
-  .popup-bottom.show { display: block; }
-  .popup-bottom-mask {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-  }
-  .popup-bottom-content {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: #fff;
-    border-radius: 24px 24px 0 0;
-    padding: 24px 20px 30px;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  .random-card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 30px;
-    text-align: center;
-    width: 260px;
-    margin: 0 20px;
-  }
-  .random-card .r-emoji { font-size: 60px; margin-bottom: 12px; }
-  .random-card .r-name { font-size: 20px; font-weight: bold; color: #ff6b81; margin-bottom: 12px; }
-  .random-card .r-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5; }
-  .random-card button {
-    background: linear-gradient(135deg, #ff9a9e, #fecfef);
-    border: none;
-    border-radius: 20px;
-    padding: 10px 30px;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    outline: none;
-  }
-  .order-panel h2 { text-align: center; font-size: 18px; color: #ff6b81; margin-bottom: 16px; }
-  .order-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px dashed #f0f0f0;
-    font-size: 14px;
-  }
-  .order-item .oi-name { flex: 1; }
-  .order-item .oi-qty { color: #999; margin: 0 12px; }
-  .order-note {
-    width: 100%;
-    border: 1px dashed #ddd;
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 13px;
-    margin-top: 12px;
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    height: 60px;
-  }
-  .order-name-input {
-    width: 100%;
-    border: 1px dashed #ddd;
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 14px;
-    margin-bottom: 12px;
-    outline: none;
-    font-family: inherit;
-  }
-  .order-name-input::placeholder { color: #ccc; }
-  .order-actions { display: flex; gap: 12px; margin-top: 16px; }
-  .order-actions button {
-    flex: 1;
-    padding: 12px;
-    border-radius: 25px;
-    border: none;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    outline: none;
-  }
-  .btn-cancel { background: #f5f5f5; color: #999; }
-  .btn-confirm { background: linear-gradient(135deg, #ff9a9e, #ff6b81); color: #fff; }
-  .success-card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 30px;
-    text-align: center;
-    width: 280px;
-    margin: 0 20px;
-  }
-  .success-card .big-emoji { font-size: 60px; margin-bottom: 12px; }
-  .success-card h3 { font-size: 18px; color: #ff6b81; margin-bottom: 8px; }
-  .success-card p { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 16px; }
-  .success-card button {
-    background: linear-gradient(135deg, #ff9a9e, #fecfef);
-    border: none;
-    border-radius: 20px;
-    padding: 10px 30px;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    outline: none;
-  }
-  .submitting { opacity: 0.6; pointer-events: none; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { background:#F6EEE3; }
+  body { font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; color:#5B4636; min-height:100vh; }
+  .app { max-width:480px; margin:0 auto; min-height:100vh; background:#FAF4EC; padding-bottom:120px; box-shadow:0 0 40px rgba(140,100,70,.12); position:relative; }
+
+  /* 顶栏 */
+  .top-bar { display:flex; align-items:center; justify-content:center; padding:16px 16px 4px; }
+  .top-bar .t-title { font-size:14px; font-weight:600; color:#A98C74; letter-spacing:3px; }
+
+  /* 头图区 */
+  .hero { padding:10px 20px 0; }
+  .hero .label { display:inline-block; font-size:12px; color:#C17F59; background:#fff; border:1px solid #EBD6C2; padding:3px 12px; border-radius:999px; margin-bottom:10px; font-weight:500; }
+  .hero .big { font-size:44px; font-weight:900; color:#6B4A32; letter-spacing:6px; line-height:1.15; }
+  .hero .slogan { font-size:13px; color:#A98C74; margin-top:8px; }
+  .hero .date { font-size:12px; color:#BDA186; margin-top:4px; }
+  .hero .illus { width:100%; border-radius:20px; margin-top:14px; display:block; }
+  .random-pill { display:block; width:100%; margin-top:12px; border:1.5px dashed #D9B696; background:#FFF9F1; color:#C17F59; font-size:13px; font-weight:600; padding:11px 0; border-radius:999px; cursor:pointer; }
+
+  /* 分类药丸 */
+  .pills { display:flex; gap:8px; overflow-x:auto; padding:18px 16px 6px; }
+  .pills::-webkit-scrollbar { display:none; }
+  .pill { flex-shrink:0; border:none; background:#F0E3D2; color:#8A6F5B; font-size:13px; padding:8px 16px; border-radius:999px; cursor:pointer; font-weight:500; }
+  .pill.active { background:#C17F59; color:#fff; font-weight:600; box-shadow:0 4px 12px rgba(193,127,89,.35); }
+
+  /* 菜单区头部 */
+  .menu-head { display:flex; align-items:flex-end; justify-content:space-between; padding:16px 16px 10px; }
+  .menu-head .left .mh-title { font-size:20px; font-weight:800; color:#6B4A32; }
+  .menu-head .left .mh-sub { font-size:12px; color:#BDA186; margin-top:3px; }
+  .reset-btn { border:1.5px solid #E0C3A6; background:transparent; color:#C17F59; font-size:12px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer; }
+
+  /* 菜单 */
+  .menu-section { padding:0 16px; }
+  .section-title { font-size:14px; font-weight:700; color:#8A6F5B; margin:16px 2px 10px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .dish-card { background:#fff; border-radius:18px; padding:10px; box-shadow:0 2px 10px rgba(140,100,70,.08); display:flex; flex-direction:column; }
+  .dish-card.picked { outline:2px solid #C17F59; }
+  .dish-img { height:104px; border-radius:14px; background:#F8EFE2; display:flex; align-items:center; justify-content:center; font-size:50px; }
+  .dish-name { font-size:15px; font-weight:700; color:#6B4A32; margin-top:10px; }
+  .dish-meta { font-size:11px; color:#C4A88F; margin-top:2px; }
+  .dish-bottom { margin-top:10px; }
+  .select-btn { width:100%; border:1.5px solid #C17F59; background:transparent; color:#C17F59; padding:8px 0; border-radius:999px; font-size:13px; cursor:pointer; font-weight:600; }
+  .select-btn.selected { background:#C17F59; color:#fff; border-color:#C17F59; }
+  .qty-row { display:flex; align-items:center; gap:8px; }
+  .qty-row .q-info { flex:1; text-align:center; background:#C17F59; color:#fff; font-size:12px; font-weight:700; padding:8px 0; border-radius:999px; }
+  .qty-btn { width:32px; height:32px; border:none; border-radius:50%; background:#F0E3D2; color:#8A6F5B; font-size:16px; font-weight:700; cursor:pointer; }
+  .qty-btn:active { background:#E3CFB6; }
+  .empty-tip { text-align:center; color:#C4A88F; font-size:13px; padding:40px 0; }
+
+  /* 底部确认栏 */
+  .confirm-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; padding:14px 16px calc(14px + env(safe-area-inset-bottom)); background:linear-gradient(to top,#FAF4EC 62%,rgba(250,244,236,0)); z-index:50; }
+  .confirm-inner { display:flex; align-items:center; gap:12px; background:#fff; border-radius:20px; padding:10px 10px 10px 18px; box-shadow:0 6px 24px rgba(140,100,70,.18); }
+  .confirm-info { font-size:13px; color:#8A6F5B; white-space:nowrap; }
+  .confirm-info b { color:#C17F59; font-size:15px; }
+  .confirm-btn { flex:1; border:none; background:#C17F59; color:#fff; font-size:15px; font-weight:700; padding:13px 0; border-radius:14px; cursor:pointer; }
+  .confirm-btn:active { background:#B06E4B; }
+
+  /* 弹窗通用 */
+  .popup-center { display:none; position:fixed; inset:0; background:rgba(90,60,40,.45); z-index:100; align-items:center; justify-content:center; padding:24px; }
+  .popup-center.show { display:flex; }
+  .popup-bottom { display:none; position:fixed; inset:0; background:rgba(90,60,40,.45); z-index:100; align-items:flex-end; justify-content:center; }
+  .popup-bottom.show { display:flex; }
+
+  /* 随机推荐卡 */
+  .random-card { background:#fff; border-radius:24px; padding:28px 24px; text-align:center; width:100%; max-width:320px; animation:pop .25s; }
+  @keyframes pop { from { transform:scale(.85); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .random-card .r-emoji { font-size:60px; margin-bottom:12px; }
+  .random-card .r-tag { display:inline-block; font-size:11px; color:#C17F59; background:#FAF0E5; border-radius:999px; padding:3px 10px; margin-bottom:8px; }
+  .random-card .r-name { font-size:20px; font-weight:800; color:#6B4A32; margin-bottom:10px; }
+  .random-card .r-desc { font-size:13px; color:#BDA186; margin-bottom:18px; line-height:1.5; }
+  .random-card button { width:100%; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
+
+  /* 下单面板 */
+  .order-panel { background:#fff; width:100%; max-width:480px; border-radius:24px 24px 0 0; padding:22px 20px calc(20px + env(safe-area-inset-bottom)); animation:up .25s; }
+  @keyframes up { from { transform:translateY(40px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  .order-panel h2 { font-size:18px; color:#6B4A32; margin-bottom:14px; text-align:center; }
+  .order-name-input { width:100%; border:1.5px solid #E0C3A6; border-radius:12px; padding:12px 14px; font-size:14px; margin-bottom:12px; outline:none; background:#FFFDF9; color:#5B4636; }
+  .order-name-input:focus { border-color:#C17F59; }
+  .order-item { display:flex; justify-content:space-between; font-size:14px; color:#5B4636; padding:9px 2px; border-bottom:1px dashed #F0E3D2; }
+  .oi-qty { color:#C17F59; font-weight:700; }
+  .order-note { width:100%; height:70px; border:1.5px solid #E0C3A6; border-radius:12px; padding:12px 14px; font-size:13px; margin:12px 0; outline:none; resize:none; background:#FFFDF9; color:#5B4636; font-family:inherit; }
+  .order-note:focus { border-color:#C17F59; }
+  .order-actions { display:flex; gap:10px; }
+  .btn-cancel { flex:1; border:1.5px solid #E0C3A6; background:#fff; color:#8A6F5B; font-size:14px; font-weight:600; padding:12px 0; border-radius:999px; cursor:pointer; }
+  .btn-confirm { flex:2; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
+  .btn-confirm.submitting { opacity:.6; }
+
+  /* 成功弹窗 */
+  .success-card { background:#fff; border-radius:24px; padding:32px 28px; text-align:center; width:100%; max-width:300px; animation:pop .25s; }
+  .success-card .s-emoji { font-size:56px; margin-bottom:12px; }
+  .success-card .s-title { font-size:20px; font-weight:800; color:#6B4A32; margin-bottom:8px; }
+  .success-card .s-sub { font-size:13px; color:#BDA186; margin-bottom:20px; line-height:1.5; }
+  .success-card button { width:100%; border:none; background:#C17F59; color:#fff; font-size:14px; font-weight:700; padding:12px 0; border-radius:999px; cursor:pointer; }
 </style>
 </head>
 <body>
+<div class="app">
 
-<div class="header">
-  <div class="mascot">&#x1F468;&#x200D;&#x1F373;</div>
-  <h1>&#x2728; 今日特供菜单 &#x2728;</h1>
-  <div class="subtitle">想吃什么随便点，老板（我）亲自下厨</div>
-  <button class="random-btn" id="randomBtn">&#x1F3B2; 帮我选一道！不知道吃啥</button>
-</div>
-
-<div class="tabs" id="tabs">
-  <button class="tab active" data-cat="all">&#x1F37D;&#xFE0F; 全部</button>
-  <button class="tab" data-cat="meat">&#x1F969; 荤菜</button>
-  <button class="tab" data-cat="veg">&#x1F966; 素菜</button>
-  <button class="tab" data-cat="soup">&#x1F372; 汤羹</button>
-  <button class="tab" data-cat="staple">&#x1F35A; 主食</button>
-</div>
-
-<div class="menu-section" id="menuSection"></div>
-
-<div class="cart-bar">
-  <div class="cart-left">
-    <div class="cart-icon">
-      &#x1F6D2;
-      <span class="cart-badge" id="cartBadge">0</span>
-    </div>
-    <div class="cart-total" id="cartTotal">0</div>
+  <div class="top-bar">
+    <div class="t-title">今日点餐</div>
   </div>
-  <button class="order-btn" id="orderBtn">去下单 &rarr;</button>
+
+  <div class="hero">
+    <div class="label">今日点餐</div>
+    <div class="big">吃啥</div>
+    <div class="slogan">吃好每一顿，开心每一天</div>
+    <div class="date" id="dateLine"></div>
+    <img class="illus" alt="家庭插画" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=warm%20flat%20illustration%20of%20a%20happy%20family%20cooking%20together%2C%20father%20wearing%20chef%20hat%20holding%20spatula%2C%20mother%20with%20sunglasses%20smiling%2C%20little%20child%20holding%20a%20big%20spoon%2C%20cozy%20kitchen%2C%20cream%20and%20terracotta%20color%20palette%2C%20cute%20rounded%20cartoon%20style%2C%20soft%20shapes%2C%20no%20text&image_size=landscape_16_9">
+    <button class="random-pill" id="randomBtn">&#x1F3B2; 不知道吃啥？帮我随机选一道</button>
+  </div>
+
+  <div class="pills" id="tabs">
+    <button class="pill active" data-cat="all">全部</button>
+    <button class="pill" data-cat="meat">&#x1F969; 荤菜</button>
+    <button class="pill" data-cat="veg">&#x1F966; 素菜</button>
+    <button class="pill" data-cat="staple-soup">&#x1F35A; 主食汤羹</button>
+  </div>
+
+  <div class="menu-head">
+    <div class="left">
+      <div class="mh-title" id="mhTitle">今日菜单</div>
+      <div class="mh-sub">挑几道今天想吃的 · 共 <span id="dishCount">0</span> 道</div>
+    </div>
+    <button class="reset-btn" id="resetBtn">重置本餐</button>
+  </div>
+
+  <div class="menu-section" id="menuSection"></div>
+
+  <div class="confirm-bar">
+    <div class="confirm-inner">
+      <div class="confirm-info">已选 <b id="cartCount">0</b> 道</div>
+      <button class="confirm-btn" id="orderBtn">选好了，确认本餐 &rarr;</button>
+    </div>
+  </div>
+
 </div>
 
 <div class="popup-center" id="randomWrap">
   <div class="random-card" id="randomCard"></div>
 </div>
 
-<div class="popup-bottom" id="orderWrap">
-  <div class="popup-bottom-mask" id="orderBg"></div>
-  <div class="popup-bottom-content order-panel" id="orderPanel"></div>
-</div>
-
 <div class="popup-center" id="successWrap">
   <div class="success-card">
-    <div class="big-emoji">&#x1F389;</div>
-    <h3>下单成功！</h3>
-    <p>老板已收到你的菜单<br>正在疯狂备料中...<br>预计上菜时间：看你心情</p>
-    <button id="successBtn">好的，等投喂</button>
+    <div class="s-emoji">&#x1F389;</div>
+    <div class="s-title">下单成功！</div>
+    <div class="s-sub">老板已经收到你的菜单啦<br>坐等开饭吧～</div>
+    <button id="successBtn">好嘞</button>
   </div>
+</div>
+
+<div class="popup-bottom" id="orderWrap">
+  <div class="order-panel" id="orderPanel"></div>
 </div>
 
 <script>
@@ -375,6 +201,14 @@ function saveOrders(orders, sha, callback) {
   xhr.send(body);
 }
 
+// 日期
+(function() {
+  var now = new Date();
+  var weeks = ['日','一','二','三','四','五','六'];
+  document.getElementById('dateLine').innerHTML =
+    now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 · 星期' + weeks[now.getDay()];
+})();
+
 var dishes = [
   // 荤菜
   { id: 1, name: '老板牌红烧肉', emoji: '\uD83E\uDD69', cat: 'meat', desc: '肥而不腻，入口即化，老板的拿手菜' },
@@ -400,6 +234,7 @@ var dishes = [
 ];
 
 var catNames = { meat: '\uD83E\uDD69 荤菜', veg: '\uD83E\uDD66 素菜', soup: '\uD83C\uDF72 汤羹', staple: '\uD83C\uDF5A 主食' };
+var pillTitles = { all: '今日菜单', meat: '荤菜', veg: '素菜', 'staple-soup': '主食汤羹' };
 
 var cart = {};
 var currentCat = 'all';
@@ -413,8 +248,10 @@ function findDish(id) {
 
 function renderMenu() {
   var section = document.getElementById('menuSection');
-  var cats = currentCat === 'all' ? ['meat','veg','soup','staple'] : [currentCat];
+  var catMap = { all: ['meat','veg','soup','staple'], 'staple-soup': ['soup','staple'] };
+  var cats = catMap[currentCat] || [currentCat];
   var html = '';
+  var count = 0;
   for (var c = 0; c < cats.length; c++) {
     var cat = cats[c];
     var items = [];
@@ -422,29 +259,34 @@ function renderMenu() {
       if (dishes[i].cat === cat) items.push(dishes[i]);
     }
     if (items.length === 0) continue;
+    count += items.length;
     html += '<div class="section-title">' + catNames[cat] + '</div>';
+    html += '<div class="grid">';
     for (var j = 0; j < items.length; j++) {
       var d = items[j];
       var qty = cart[d.id] || 0;
-      html += '<div class="dish-card">';
-      html += '<div class="dish-emoji">' + d.emoji + '</div>';
-      html += '<div class="dish-info">';
+      html += '<div class="dish-card' + (qty > 0 ? ' picked' : '') + '">';
+      html += '<div class="dish-img">' + d.emoji + '</div>';
       html += '<div class="dish-name">' + d.name + '</div>';
-      html += '<div class="dish-desc">' + d.desc + '</div>';
+      html += '<div class="dish-meta">1人份</div>';
       html += '<div class="dish-bottom">';
       if (qty > 0) {
-        html += '<div class="qty-control">';
+        html += '<div class="qty-row">';
         html += '<button class="qty-btn" onclick="changeQty(' + d.id + ',-1)">&minus;</button>';
-        html += '<span class="qty-num">' + qty + '</span>';
+        html += '<div class="q-info">已选 x' + qty + '</div>';
         html += '<button class="qty-btn" onclick="changeQty(' + d.id + ',1)">+</button>';
         html += '</div>';
       } else {
-        html += '<button class="add-btn" onclick="changeQty(' + d.id + ',1)">+</button>';
+        html += '<button class="select-btn" onclick="changeQty(' + d.id + ',1)">选择</button>';
       }
-      html += '</div></div></div>';
+      html += '</div></div>';
     }
+    html += '</div>';
   }
+  if (count === 0) html = '<div class="empty-tip">这个分类暂时没有菜哦</div>';
   section.innerHTML = html;
+  document.getElementById('dishCount').innerHTML = count;
+  document.getElementById('mhTitle').innerHTML = pillTitles[currentCat] || '今日菜单';
 }
 
 function changeQty(id, delta) {
@@ -454,17 +296,26 @@ function changeQty(id, delta) {
   renderMenu();
 }
 
-var tabBtns = document.querySelectorAll('.tab');
+var tabBtns = document.querySelectorAll('.pill');
 for (var t = 0; t < tabBtns.length; t++) {
   (function(btn) {
     btn.onclick = function() {
-      for (var i = 0; i < tabBtns.length; i++) tabBtns[i].className = 'tab';
-      btn.className = 'tab active';
+      for (var i = 0; i < tabBtns.length; i++) tabBtns[i].className = 'pill';
+      btn.className = 'pill active';
       currentCat = btn.getAttribute('data-cat');
       renderMenu();
     };
   })(tabBtns[t]);
 }
+
+document.getElementById('resetBtn').onclick = function() {
+  if (Object.keys(cart).length === 0) return;
+  if (confirm('确定要重置本餐吗？已选的菜会全部清空')) {
+    cart = {};
+    updateCart();
+    renderMenu();
+  }
+};
 
 function updateCart() {
   var totalQty = 0;
@@ -472,8 +323,7 @@ function updateCart() {
   for (var i = 0; i < keys.length; i++) {
     totalQty += cart[keys[i]];
   }
-  document.getElementById('cartBadge').innerHTML = totalQty;
-  document.getElementById('cartTotal').innerHTML = totalQty > 0 ? totalQty + '道' : '0';
+  document.getElementById('cartCount').innerHTML = totalQty;
 }
 
 // 随机推荐（只随机荤菜或素菜，且不与上一道重复）
@@ -492,6 +342,7 @@ document.getElementById('randomBtn').onclick = function() {
   lastRandomId = d.id;
   var card = document.getElementById('randomCard');
   card.innerHTML = '<div class="r-emoji">' + d.emoji + '</div>' +
+    '<div class="r-tag">' + (d.cat === 'meat' ? '荤菜' : '素菜') + '</div>' +
     '<div class="r-name">' + d.name + '</div>' +
     '<div class="r-desc">' + d.desc + '</div>' +
     '<button id="randomAddBtn">加进购物车</button>';
@@ -515,11 +366,11 @@ document.getElementById('orderBtn').onclick = function() {
     if (cart[keys[i]] > 0) entries.push({ id: parseInt(keys[i]), qty: cart[keys[i]] });
   }
   if (entries.length === 0) {
-    alert('购物车是空的哦~先选几道菜吧');
+    alert('还没选菜哦~先挑几道吧');
     return;
   }
   var panel = document.getElementById('orderPanel');
-  var html = '<h2>我的订单</h2>';
+  var html = '<h2>确认本餐</h2>';
   html += '<input class="order-name-input" id="orderName" placeholder="你的名字（必填）">';
   for (var i = 0; i < entries.length; i++) {
     var entry = entries[i];
@@ -550,8 +401,8 @@ document.getElementById('orderBtn').onclick = function() {
     submitOrder(name, note, entries);
   };
 };
-document.getElementById('orderBg').onclick = function() {
-  document.getElementById('orderWrap').className = 'popup-bottom';
+document.getElementById('orderWrap').onclick = function(e) {
+  if (e.target === this) this.className = 'popup-bottom';
 };
 
 function submitOrder(name, note, entries) {
