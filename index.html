@@ -41,7 +41,8 @@
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .dish-card { background:#fff; border-radius:18px; padding:10px; box-shadow:0 2px 10px rgba(140,100,70,.08); display:flex; flex-direction:column; }
   .dish-card.picked { outline:2px solid #C17F59; }
-  .dish-img { height:104px; border-radius:14px; background:#F8EFE2; display:flex; align-items:center; justify-content:center; font-size:50px; }
+  .dish-img { width:100%; height:104px; border-radius:14px; background:#F8EFE2; object-fit:cover; display:block; }
+  .dish-placeholder { display:flex; align-items:center; justify-content:center; font-size:44px; }
   .dish-name { font-size:15px; font-weight:700; color:#6B4A32; margin-top:10px; }
   .dish-meta { font-size:11px; color:#C4A88F; margin-top:2px; }
   .dish-bottom { margin-top:10px; }
@@ -210,26 +211,43 @@ function saveOrders(orders, sha, callback) {
 
 var dishes = [
   // 荤菜
-  { id: 1, name: '老板牌红烧肉', emoji: '\uD83E\uDD69', cat: 'meat', desc: '肥而不腻，入口即化，老板的拿手菜' },
-  { id: 2, name: '糖醋小排', emoji: '\uD83C\uDF56', cat: 'meat', desc: '酸酸甜甜，啃到停不下来' },
-  { id: 3, name: '宫保鸡丁', emoji: '\uD83C\uDF57', cat: 'meat', desc: '花生脆脆的，鸡肉嫩嫩的' },
-  { id: 6, name: '清蒸鲈鱼', emoji: '\uD83D\uDC1F', cat: 'meat', desc: '鲜嫩爽滑，营养满满' },
-  { id: 8, name: '水煮牛肉', emoji: '\uD83E\uDD58', cat: 'meat', desc: '麻辣过瘾，牛肉滑嫩' },
-  { id: 10, name: '口水鸡', emoji: '\uD83D\uDC14', cat: 'meat', desc: '红油香麻，看着就流口水' },
-  { id: 12, name: '蒜泥白肉', emoji: '\uD83E\uDD53', cat: 'meat', desc: '蒜香浓郁，肉片薄如纸' },
+  { id: 1, name: '老板牌红烧肉', emoji: '\uD83E\uDD69', cat: 'meat', desc: '肥而不腻，入口即化，老板的拿手菜',
+    img: '' },
+  { id: 2, name: '糖醋小排', emoji: '\uD83C\uDF56', cat: 'meat', desc: '酸酸甜甜，啃到停不下来',
+    img: '' },
+  { id: 3, name: '宫保鸡丁', emoji: '\uD83C\uDF57', cat: 'meat', desc: '花生脆脆的，鸡肉嫩嫩的',
+    img: '' },
+  { id: 6, name: '清蒸鲈鱼', emoji: '\uD83D\uDC1F', cat: 'meat', desc: '鲜嫩爽滑，营养满满',
+    img: '' },
+  { id: 8, name: '水煮牛肉', emoji: '\uD83E\uDD58', cat: 'meat', desc: '麻辣过瘾，牛肉滑嫩',
+    img: '' },
+  { id: 10, name: '口水鸡', emoji: '\uD83D\uDC14', cat: 'meat', desc: '红油香麻，看着就流口水',
+    img: '' },
+  { id: 12, name: '蒜泥白肉', emoji: '\uD83E\uDD53', cat: 'meat', desc: '蒜香浓郁，肉片薄如纸',
+    img: '' },
   // 素菜
-  { id: 4, name: '番茄炒蛋', emoji: '\uD83C\uDF73', cat: 'veg', desc: '国民第一菜，永远的神' },
-  { id: 5, name: '麻婆豆腐', emoji: '\uD83C\uDF36\uFE0F', cat: 'veg', desc: '麻辣鲜香，下饭神器' },
-  { id: 7, name: '干锅花菜', emoji: '\uD83E\uDD66', cat: 'veg', desc: '焦香入味，素菜也能很下饭' },
-  { id: 9, name: '凉拌黄瓜', emoji: '\uD83E\uDD52', cat: 'veg', desc: '清爽解腻，夏日必备' },
-  { id: 11, name: '皮蛋豆腐', emoji: '\uD83E\uDD5A', cat: 'veg', desc: '经典搭配，简单又好吃' },
+  { id: 4, name: '番茄炒蛋', emoji: '\uD83C\uDF73', cat: 'veg', desc: '国民第一菜，永远的神',
+    img: '' },
+  { id: 5, name: '麻婆豆腐', emoji: '\uD83C\uDF36\uFE0F', cat: 'veg', desc: '麻辣鲜香，下饭神器',
+    img: '' },
+  { id: 7, name: '干锅花菜', emoji: '\uD83E\uDD66', cat: 'veg', desc: '焦香入味，素菜也能很下饭',
+    img: '' },
+  { id: 9, name: '凉拌黄瓜', emoji: '\uD83E\uDD52', cat: 'veg', desc: '清爽解腻，夏日必备',
+    img: '' },
+  { id: 11, name: '皮蛋豆腐', emoji: '\uD83E\uDD5A', cat: 'veg', desc: '经典搭配，简单又好吃',
+    img: '' },
   // 汤羹
-  { id: 13, name: '番茄蛋花汤', emoji: '\uD83C\uDF45', cat: 'soup', desc: '酸甜开胃，暖胃首选' },
-  { id: 14, name: '紫菜蛋花汤', emoji: '\uD83C\uDF3F', cat: 'soup', desc: '清淡鲜美，百喝不腻' },
-  { id: 15, name: '玉米排骨汤', emoji: '\uD83C\uDF3D', cat: 'soup', desc: '炖了两个小时，鲜到掉眉毛' },
-  { id: 16, name: '酸辣汤', emoji: '\uD83C\uDF5C', cat: 'soup', desc: '酸酸辣辣，喝完浑身舒坦' },
+  { id: 13, name: '番茄蛋花汤', emoji: '\uD83C\uDF45', cat: 'soup', desc: '酸甜开胃，暖胃首选',
+    img: '' },
+  { id: 14, name: '紫菜蛋花汤', emoji: '\uD83C\uDF3F', cat: 'soup', desc: '清淡鲜美，百喝不腻',
+    img: '' },
+  { id: 15, name: '玉米排骨汤', emoji: '\uD83C\uDF3D', cat: 'soup', desc: '炖了两个小时，鲜到掉眉毛',
+    img: '' },
+  { id: 16, name: '酸辣汤', emoji: '\uD83C\uDF5C', cat: 'soup', desc: '酸酸辣辣，喝完浑身舒坦',
+    img: '' },
   // 主食
-  { id: 17, name: '五常大米饭', emoji: '\uD83C\uDF5A', cat: 'staple', desc: '粒粒分明，香软可口' },
+  { id: 17, name: '五常大米饭', emoji: '\uD83C\uDF5A', cat: 'staple', desc: '粒粒分明，香软可口',
+    img: '' },
 ];
 
 var catNames = { meat: '\uD83E\uDD69 荤菜', veg: '\uD83E\uDD66 素菜', soup: '\uD83C\uDF72 汤羹', staple: '\uD83C\uDF5A 主食' };
@@ -265,7 +283,11 @@ function renderMenu() {
       var d = items[j];
       var qty = cart[d.id] || 0;
       html += '<div class="dish-card' + (qty > 0 ? ' picked' : '') + '">';
-      html += '<div class="dish-img">' + d.emoji + '</div>';
+      if (d.img) {
+        html += '<img class="dish-img" src="' + d.img + '" alt="' + d.name + '" loading="lazy">';
+      } else {
+        html += '<div class="dish-img dish-placeholder">' + d.emoji + '</div>';
+      }
       html += '<div class="dish-name">' + d.name + '</div>';
       html += '<div class="dish-meta">1人份</div>';
       html += '<div class="dish-bottom">';
